@@ -1,5 +1,12 @@
+import React from 'react'
 
-  <div>Hello world</div>
+function page() {
+  return (
+    <div>Hello World</div>
+  )
+}
+
+export default page
 
 
 // // app/shows/[id]/page.js
