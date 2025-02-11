@@ -1,19 +1,16 @@
 import jwt from "jsonwebtoken";
-import { connectDB } from "../../../../lib/mongodb";  // ✅ Correct MongoDB import
-import Otp from "../../../../models/Otp";  // ✅ Correct Model import
+import { connectDB } from "../../../../lib/mongodb";  
+import Otp from "../../../../models/Otp";  
+import { NextResponse } from "next/server";
 import dotenv from "dotenv";
 
-// ✅ Manually load `.env.local` from `env_local/`
 dotenv.config({ path: "./env_local/.env.local" });
 
-
 export async function POST(req) {
-  await connectDB(); // Connect to MongoDB
+  await connectDB(); 
 
   try {
     const { mobile, otp } = await req.json();
-
-    // Fetch the OTP from MongoDB
     const storedOtp = await Otp.findOne({ mobile });
 
     console.log(`📩 Incoming Request - Mobile: ${mobile}, OTP: ${otp}`);
@@ -21,19 +18,29 @@ export async function POST(req) {
 
     if (!storedOtp || String(otp) !== String(storedOtp.otp)) {
       console.log(`❌ Invalid OTP!`);
-      return new Response(JSON.stringify({ error: "Invalid OTP" }), { status: 400 });
+      return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
     }
 
-    // ✅ OTP matched, delete OTP from database
     await Otp.deleteOne({ mobile });
 
     // ✅ Generate JWT Token
     const token = jwt.sign({ mobile }, process.env.JWT_SECRET, { expiresIn: "7d" });
     
 
-    return new Response(JSON.stringify({ message: "OTP Verified!", token }), { status: 200 });
+    // ✅ Store JWT in HTTP-only Cookie
+    const response = NextResponse.json({ message: "OTP Verified!" });
+    response.cookies.set("authToken", token, {
+      httpOnly: true, // 🔒 Prevents JavaScript access (XSS-proof)
+      secure: process.env.NODE_ENV === "production", // 🔒 Use `secure` in production (HTTPS)
+      maxAge: 7 * 24 * 60 * 60, // 🔥 Expires in 7 days
+      sameSite: "lax",
+    });
+
+    console.log("✅ Cookie Set in Response:", response.cookies.get("authToken"));
+
+    return response;
   } catch (error) {
     console.log("❌ Error in verify-otp:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

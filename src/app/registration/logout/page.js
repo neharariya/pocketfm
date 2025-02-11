@@ -183,25 +183,32 @@ export default function Logout() {
   const [progress, setProgress] = useState(0);
   const router = useRouter();
 
-  // ✅ Logout function
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    async function logoutUser() {
+      try {
+        const response = await fetch("/api/logout", { method: "POST" });
 
-    if (token) {
-      localStorage.removeItem("authToken"); // ✅ Clear token
+        if (response.ok) {
+          console.log("✅ Successfully logged out");
+
+          // ✅ Redirect after a short delay
+          setTimeout(() => {
+            router.push("/"); // Redirect to home page
+          }, 500);
+        }
+      } catch (error) {
+        console.error("❌ Logout failed:", error);
+      }
     }
 
+    logoutUser();
+
+    // 🔄 Progress bar animation
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-           // ✅ Redirect after logout
           setLoading(false);
-
-          setTimeout(() => {
-            router.push("/");
-          }, 500);
-
           return 100;
         }
         return prev + 10;
@@ -235,4 +242,3 @@ export default function Logout() {
     </div>
   );
 }
-

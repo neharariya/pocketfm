@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useRouter } from "next/navigation";
-
 
 export default function Login() {
   const [mobile, setMobile] = useState(""); // State for storing the mobile number
@@ -10,6 +9,7 @@ export default function Login() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]); // State for OTP input
   const [otpSent, setOtpSent] = useState(false); // State to track if OTP has been sent
   const router = useRouter();  // ✅ Initialize the router
+  
 
 
   // Function to handle sending the OTP
@@ -78,9 +78,8 @@ export default function Login() {
       if (response.ok) {
         alert("OTP verified successfully!");
         // Redirect or perform other actions after successful verification
-        localStorage.setItem("authToken", data.token);
-        console.log("data.token value:",data.token);
-        
+        // localStorage.setItem("authToken", data.token);
+        // 
 
       // Redirect to homepage or dashboard
       router.push("/");

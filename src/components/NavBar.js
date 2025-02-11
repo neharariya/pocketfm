@@ -29,13 +29,25 @@ const NavBar = () => {
 
   // Check if the user is logged in when the component mounts
   useEffect(() => {
-    const token = localStorage.getItem("authToken"); // Get the token from localStorage
-    if (token) {
-      setIsLoggedIn(true); // User is logged in
-    } else {
-      setIsLoggedIn(false); // User is not logged in
+    async function checkAuth() {
+      try {
+        const response = await fetch("/api/auth-status"); // Call auth-status API
+        const data = await response.json();
+        console.log("🔍 Auth Status Response:", data); // Debugging Log
+
+        if (data.isAuthenticated) {
+          setIsLoggedIn(true);
+          // router.push("/"); // ✅ Redirect if logged in
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
+      }
     }
-  }, []);
+
+    checkAuth();
+  }, [isLoggedIn]);
+
+
 
   // Toggle the sidebar
   const toggleSidebar = () => {
